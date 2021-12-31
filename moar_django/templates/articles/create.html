@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Moar Articles</title>
+</head>
+{% extends "base.html" %}
+<body>
+{% block content %}
+{% if not created %}
+
+<div style="margin-top:30px;">
+<form action="." method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+<!--    <div>-->
+<!--    <input type="text" name="title" placeholder="Title" />-->
+<!--    </div>-->
+<!--    <div style="margin-top:30px;">-->
+<!--    <textarea name="content" placeholder="Content"></textarea>-->
+<!--        </div>-->
+    <button type="submit">Create Article</button>
+</form>
+</div>
+{% else %}
+
+<p>Your article was created</p>
+<li> <a href='/article/{{object.id}}/'>{{ object.title }}</a> - {{ object.content }} </li>
+
+{% endif %}
+
+{% endblock content %}
+</body>
+</html>

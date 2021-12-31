@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Moar Django </title>
+</head>
+{% block content %}
+<h1>{{ title }} (id: {{ id }}) </h1>
+<body>
+    <p>{{content}}</p>
+    <ul>
+        {% for x in object_list %}
+            {% if x.title %}
+        <li> <a href='/article/{{x.id}}/'>{{ x.title }}</a> - {{ x.content }} </li>
+                    {% endif %}
+        {% endfor %}
+    </ul>
+
+
+{% endblock content %}
+</body>
+</html>

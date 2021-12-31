@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Moar Django Article</title>
+</head>
+{% extends "base.html" %}
+
+{% block content %}
+<body>
+{% if object %}
+    <h1> {{ object.title }} </h1>
+    <p> {{ object.content }}</p>
+{% endif %}
+</body>
+{% endblock content %}
+</html>

@@ -1,0 +1,1313 @@
+https://www.youtube.com/watch?v=SlHBNXW1rTk&list=PLEsfXFp6DpzRMby_cSoWTFw8zaMdTEXgL&index=1
+
+*cd to python_venv to create a virtual environment
+
+*creat a virtual environment in the file you want to make a virtual environment in (will call the environment whatever the name of the folder is
+>c:\Python310\python.exe -m venv .
+
+or
+
+>python -m venv moar_django_env
+
+*pip install django
+>pip install django==3.2.10
+
+*when you need to update pip
+>python -m pip install pip --upgrade pip
+
+*see what you installed
+>pip freeze
+
+*will give you all the django commands
+>python -m django
+
+*comands that overlap with above command but this command is for after creating a project
+>python manag.py
+
+*to create a requirements.txt file
+>pip freeze > requirements.txt
+
+*to install requirements.txt
+>pip install -r requirements.txt
+
+
+*to start a project
+>python -m django startproject moar_django #this will put the project in a new directory
+>python -m django startproject moar_django . #this will put it in your current directory
+
+
+*create a views.py file inside moar django/moar_django
+*to render html webpages
+
+*in views.py
+
+from django.http import HttpResponse
+
+HTML_STRING = """<h1>Hello World its your wild Girl</h1>"""
+
+def home(request):
+    """take in a request (django sends request)
+    return html as a responce (we pick to return the response"""
+    return HttpResponse(HTML_STRING)
+
+*but to be able to use it urls.py has to be set up
+
+from django.contrib import admin
+from django.urls import path
+
+from .views import home_view
+
+urlpatterns = [
+    path('', home_view),
+    path('admin/', admin.site.urls),
+
+]
+
+
+*start a component
+>python manage.py startapp articles
+
+
+*create database model in models.py
+
+from django.db import models
+
+class Article(models.Model):
+    title = models.TextField()
+    content = models.TextField()
+
+*make migrations to update the database
+python. manage.py migrate
+
+*modifiy the settings to recognize your new component
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'articles',
+]
+
+*then apply the changes to the database again (do this every time you change the models.py)
+>python manage.py makemigrations
+>python manage.py migrate
+
+*we just created a model, made sure the app we created the model in is in installed apps & then run the above commands
+
+*now we will add data to the db through the shell
+*in the terminal
+>python
+>>> from dataclasses import dataclass
+>>> @dataclass
+... class BlogPost:
+...     title: str
+...     content: string
+
+
+>>>obj = BlogPost(title="Goodbye world", content="I would rather not")
+>>>exit()
+*cannot recall this data from the python shell so we have to retype it in
+
+>python manage.py shell
+>>> from articles.models import Article
+>>> obj = Article()
+>>> obj.title
+''
+>>> obj.content
+''
+>>> obj.save()
+*this is the method that allows it to store in the database
+>>> obj =Article(title='this is my first title', content='Hello World')
+>>> obj.save()
+>>> obj2 = Article.objects.create(title='this is my other title using Article.object', content='good bye
+')
+*or you can save it to the db like
+>>> obj3 = Article()
+>>> obj3.title ="Moar titles"
+>>> obj3.content = 'Moar content'
+>>> obj3.save()
+
+*now we will render the view in views.py
+
+from articles.models import Article
+
+def home_view(request):
+    """take in a request (django sends request)
+    return html as a responce (we pick to return the response"""
+    article_obj = Article.objects.get(id=3)
+    article_title = article_obj.title
+    article_content = article_obj.content
+    H1_STRING = f"""<h1>{article_title}</h1>"""
+    P_STRING = f"""{article_content}"""
+    HTML_STRING = H1_STRING + P_STRING
+    return HttpResponse(HTML_STRING)
+
+*or better yet
+
+def home_view(request):
+    """take in a request (django sends request)
+    return html as a responce (we pick to return the response"""
+    article_obj = Article.objects.get(id=2)
+    H1_STRING = f"""<h1>{article_obj.title}</h1>"""
+    P_STRING = f"""{article_obj.content}"""
+    HTML_STRING = H1_STRING + P_STRING
+    return HttpResponse(HTML_STRING)
+
+*or
+
+from random import randint
+
+def home_view(request):
+    """take in a request (django sends request)
+    return html as a responce (we pick to return the response"""
+    random_id = randint(1,4)
+    article_obj = Article.objects.get(id=random_id)
+    H1_STRING = f"""<h1>{article_obj.title} id: {(article_obj.id)}</h1>"""
+    P_STRING = f"""{article_obj.content}"""
+    HTML_STRING = H1_STRING + P_STRING
+    return HttpResponse(HTML_STRING)
+
+*or simpler yet
+
+def home_view(request):
+    """take in a request (django sends request)
+    return html as a responce (we pick to return the response"""
+    random_id = randint(1,4)
+    article_obj = Article.objects.get(id=random_id)
+    HTML_STRING = f"""
+    <h1>{article_obj.title} id: {(article_obj.id)}</h1>
+    <p>{article_obj.content}<p>"""
+    return HttpResponse(HTML_STRING)
+
+*Templates
+*create a directory templates in the moar_django folder
+*then create a home-view.html file
+*then update settings with the templates directory
+
+*we import render to string from the django.emplate.loader in views
+from django.template.loader import render_to_string
+
+*currently everything is broken
+
+*ok no longer broken:
+*home-view looks like
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Moar Django </title>
+</head>
+{% block content %}
+<h1>{{ title }} (id: {{ id }}) </h1>
+<body>
+    <p>{{content}}</p>
+{% endblock content %}
+</body>
+</html>
+
+*views.py
+from articles.models import Article
+from random import randint
+#from django.urls import reverse
+
+
+HTML_STRING = """<h1>Hello World its your wild Girl</h1>"""
+
+def home_view(request):
+    """take in a request (django sends request)
+    return html as a responce (we pick to return the response"""
+
+    random_id = randint(1,8)
+    article_obj = Article.objects.get(id=random_id)
+
+    context = {
+        "object": article_obj,
+        "title": article_obj.title,
+        "id": article_obj.id,
+        "content": article_obj.content
+    }
+
+    HTML_STRING = render_to_string("home-view.html", context=context)
+    # HTML_STRING = f"""
+    #  <h1>{article_obj.title} id: {(article_obj.id)}</h1>
+    #  <p>{article_obj.content}<p>
+    #  """.format()
+    return HttpResponse(HTML_STRING)
+
+*settings.py
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR/"moar_django"/"templates"],
+
+can also use (as a view)
+
+tmpl = get_template('home-view.html')
+tmpl_string = tmpl.render(context=context) #use this for when you have multiple contexts
+
+HTML_STRING = render_to_string("home-view.html", context=context)
+
+*if you want to know what your base directory is because "TemplateDoesNotExist"
+*in settings.py 
+
+from pathlib import Path
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+print("Base_Dir", BASE_DIR)
+
+*Recap:
+*1.create a template even if it is just a few lines of html
+*2.import the render_to_string methond from django.template.loader
+*3.pass in the context
+
+*Display a list from views.py 
+    my_list =[43, 69, 112, 38, 99]
+    my_list_str = ""
+
+    for x in my_list:
+        my_list_str += f"number is {x}\n "
+
+    context = {
+        "my_list_str": my_list_str,
+        "object": article_obj,
+        "title": article_obj.title,
+        "id": article_obj.id,
+        "content": article_obj.content
+    }
+
+*home-view.html
+
+{% extends "base.html" %}
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Moar Django </title>
+</head>
+{% block content %}
+<h1>{{ title }} (id: {{ id }}) </h1>
+<body>
+    <p>{{content}}</p>
+    <p>{{my_list_str }}</p>
+{% endblock content %}
+</body>
+</html>
+
+*proper way to manage a list
+*in home-view.html
+<body>
+    <p>{{content}}</p>
+    <ul>
+        {% for x in my_list %}
+        <li> {{ x }} </li>
+        {% endfor %}
+    </ul>
+
+
+{% endblock content %}
+
+*in views.py
+def home_view(request):
+    """take in a request (django sends request)
+    return html as a responce (we pick to return the response"""
+
+    random_id = randint(1,8)
+    article_obj = Article.objects.get(id=random_id)
+    my_list =[43, 69, 112, 38, 99]
+
+    context = {
+        "my_list": my_list,
+        "object": article_obj,
+        "title": article_obj.title,
+        "id": article_obj.id,
+        "content": article_obj.content
+    }
+
+*print all the objects in the database
+*in views
+def home_view(request):
+    """take in a request (django sends request)
+    return html as a responce (we pick to return the response"""
+
+    random_id = randint(1,8)
+    article_obj = Article.objects.get(id=random_id)
+    article_list = Article.objects.all()
+    my_list = article_list #[43, 69, 112, 38, 99]
+    context = {
+        "my_list": my_list,
+        "object": article_obj,
+        "title": article_obj.title,
+        "id": article_obj.id,
+        "content": article_obj.content
+    }
+
+
+*Article.objects.all() is actually a query set object aka article_qs
+*and you can filter it out
+*add an if statement inside a forloop
+
+    <title>Moar Django </title>
+</head>
+{% block content %}
+<h1>{{ title }} (id: {{ id }}) </h1>
+<body>
+    <p>{{content}}</p>
+    <ul>
+        {% for x in object_list %}
+            {% if x.title %}
+                <li> {{ x.title }} - {{ x.content }} </li>
+                    {% endif %}
+        {% endfor %}
+    </ul>
+
+
+{% endblock content %}
+</body>
+
+*add links to objects
+<h1>{{ title }} (id: {{ id }}) </h1>
+<body>
+    <p>{{content}}</p>
+    <ul>
+        {% for x in object_list %}
+            {% if x.title %}
+        <li> <a href='/article/{{x.id}}/'>{{ x.title }}</a> - {{ x.content }} </li>
+                    {% endif %}
+        {% endfor %}
+    </ul>
+
+*dynamic url routing aka connecting the links href to the database
+*in articles\views.py
+
+def article_home_viw(request):
+	return HttpResponse
+
+*in urls.py -the wrong way- because number is hardcoded
+urlpatterns = [
+    path('', home_view),
+    path('articles/2/', home_view),
+    path('admin/', admin.site.urls),
+
+]
+
+*better*
+urlpatterns = [
+    path('', home_view),
+    path('articles/<int:id>/', home_view),
+    path('admin/', admin.site.urls),
+
+]
+
+*you can also use regular expressions
+*but you have to import re_path
+from django.urls import path, re_path
+
+urlpatterns = [
+    path('', home_view),
+    re_path(r'articles/(?P<id>\d+)$', home_view),
+    path('admin/', admin.site.urls),
+
+]
+
+
+*adding *args, **kwargs to home_view allows you to pass in <int:id> in the url
+
+def home_view(request, *args, **kwargs):
+
+*or add id as a prepositional argument in the home view
+
+def home_view(request, id, *args, **kwargs):
+
+*we can add print statements to home_view to print id
+*but this isn't where this be longs
+*go over to articles/views.py
+
+from django.shortcuts import render
+from .models import Article
+# Create your views here.
+def article_detail_view(request, id=None):
+    article_obj = None
+    if id is not None:
+        article_obj = Article.objects.get(id=id)
+    context = {
+        "object": article_obj,
+    }
+    return render(request, "articles/detail.html", context=conext)
+
+*then we have to go to urls.py
+*add this import statement
+
+from articles import views
+
+*add a new url directing you to the article_detail_view function)
+    path('article/<int:id>/', views.article_detail_view),
+
+
+*usually you start by making a url
+
+*look at commands 
+>python manage.py
+
+*add admin at the beginning of project
+*create this user to test your project 
+>python manage.py createsuperuser
+>ssang
+>F*****2***!*
+
+-video21
+*Register Model in Admin
+*go to moar_django/articles/admin.py
+
+from .models import Article
+admin.site.register(Article)
+
+*and now you will be able to see/handle your db
+*add search_fields to be able to search for articles
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ['id', 'title']
+    search_fields = ['title']
+-video22
+*search form & request data
+*make changes to base.html
+    <title>Moar Django</title>
+</head>
+<body>
+
+
+    <form>
+        <input type="text"/>
+        <input type="submit"/>
+    </form>
+{% block content %}
+{% endblock content %}
+</body>
+</html>
+
+*create an articles/search.html file
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Moar Django Article</title>
+</head>
+{% extends "base.html" %}
+
+{% block content %}
+<body>
+{% if object %}
+    <h1> {{ object.title }} </h1>
+    <p> {{ object.content }}</p>
+{% endif %}
+</body>
+{% endblock content %}
+</html>
+
+*create a view & url to display that page
+*go to articles\views.py
+def article_search_view(request):
+    context = {}
+    return render(requst, "articles/search.html", context=context )
+*then urls.py & add to urlpatterns
+*url order is important*
+
+*currently everything is working
+*urls.py
+from django.urls import path
+
+from articles import views
+from .views import home_view
+
+urlpatterns = [
+    path('', home_view),
+    path('article/', views.article_search_view),
+    path('article/<id>/', views.article_detail_view),
+    path('admin/', admin.site.urls),
+
+]
+
+*articles\views.py
+
+from django.shortcuts import render
+from .models import Article
+# Create your views here.
+def article_detail_view(request, id):
+    article_obj = None
+    if id is not None:
+        article_obj = Article.objects.get(id=id)
+    context = {
+        "object": article_obj,
+    }
+    return render(request, "articles/detail.html", context=context)
+
+def article_search_view(request):
+    context = {}
+    return render(request, "articles/search.html", context=context)
+
+*search.html
+
+</head>
+{% extends "base.html" %}
+
+{% block content %}
+<body>
+{% if object %}
+    <h1> {{ object.title }} </h1>
+    <p> {{ object.content }}</p>
+{% endif %}
+</body>
+{% endblock content %}
+</html>
+
+*the searches aren't changing the url to the write url, it's just appending ?q=3
+*how to get the data as a url if it isn't being passed as a function?
+	*has to do with request itself.
+	*to see request place a print statement in the function article_search_view()
+	*will see WSGIRequest: GET '/article/HTTP/1.1'
+	*adding a print(dir(request)) will get the attributes of this class
+	*adding a print(request.GET) will display a <QueryDict: {'query': ['']}>
+	*if you type 3 into the search box <QueryDict: {'query': ['3']}>
+*so the form in base.html
+	is attaching whatever input from the search & attaching it to name
+	        <input type="text" name="query"/>
+	and the default method is get (you don't have to set method = to get because it is default
+		<form action= '' method='GET'
+*so we extract the data from the function article_search_view() by
+	query_dict = request.GET
+	query = query_dict.get("query")
+*and the function looks like
+
+def article_search_view(request):
+    print(request.GET)
+    query_dict = request.GET #this is a dictionary produced by the get request created by this function
+    query = query_dict.get("query") # <input type="text" name="query"/>
+    article_obj = None
+    if query is not None:
+        article_obj = Article.objects.get(id=query) #using the query as ide instead
+    context = {
+        "object": article_obj
+    } #this is the object we have in search.html
+    return render(request, "articles/search.html", context=context)
+
+*doesn't work for anything besides id numbers
+*add
+    try:
+        query = int(query_dict.get("query"))
+    except:
+        query = None
+*if query is anything besides a number, query = None
+
+*to get this to work on our home page simply
+
+   <form action="/article/">
+
+-video23- Basic HTML Form in django
+*make a create.html in the articles folder
+</head>
+{% extends "base.html" %}
+{% block content %}
+<div style="margin-top:30px;">
+<form action="." method="POST"> #we can use . here bc this is the only view that this function will work on vs the search which works across all the pages
+    <div>
+    <input type="text" name="title" placeholder="Title" />
+    </div>
+    <div style="margin-top:30px;">
+    <textarea name="content" placeholder="Content"></textarea>
+        </div>
+    <button type="submit">Create Article</button>
+</form>
+</div>
+
+{% endblock content %}
+
+*now we make a view for it
+
+def article_create_view(request):
+    context = {}
+    return render(request, "articles/create.html", context=context)
+
+*now we make a url for it
+    path('article/create/', views.article_create_view),
+
+*to enable the form to post information to the website
+	*@csrf_exempt allows you circumvent it but this is a security risk no no
+	*but what you should do is add
+	{% csrf_token %} to the form on articles/create.html
+<form action="." method="POST">
+    {% csrf_token %}
+
+*but its not actually posting yet so go over to articles/views.py to add a print statement to see the post object
+def article_create_view(request):
+    print(request.POST)
+    context = {}
+    return render(request, "articles/create.html", context=context)
+
+*and the print statement returns
+<QueryDict: {'csrfmiddlewaretoken': ['5ltzzDt683h2W3bIFrih2oV9BNoICDFnHExLaQf2BYVIcwpFOdaIvpmfOGVw7OzN'], 'title': ['Try Try Againg']
+, 'content': ['will this change the csrf middlewaretoken']}>
+
+*so we need to add to the rticle_create_view function
+	title = request.POST.get("title")
+	content = request.POST.get("content")
+*and this works
+def article_create_view(request):
+    #print(request.POST)
+    if request.method == "POST":
+        title = request.POST.get("title")
+        content = request.POST.get("content")
+        #print(title, content)
+        Article.objects.create(title=title, content=content)
+    context = {}
+    return render(request, "articles/create.html", context=context)
+
+*to be able to add a condition to our template we add to article_create_view
+        context['title'] = title
+        context['content'] = content
+        context['created'] = True
+
+*so we can go to our template and create a conditional to produce a confirmation of creation
+
+{% if not created %}
+<div style="margin-top:30px;">
+<form action="." method="POST">
+    {% csrf_token %}
+    <div>
+    <input type="text" name="title" placeholder="Title" />
+    </div>
+    <div style="margin-top:30px;">
+    <textarea name="content" placeholder="Content"></textarea>
+        </div>
+    <button type="submit">Create Article</button>
+</form>
+</div>
+{% else %}
+
+<p>Your article was created</p>
+<li> <a href='/article/{{object.id}}/'>{{ object.title }}</a> - {{ object.content }} </li>
+
+{% endif %}
+{% endblock content %}
+
+*now we go back to article/views.py
+        article_object = Article.objects.create(title=title, content=content)
+        context['object'] = article_object
+        context['created'] = True
+
+-viedo24 Create a login view to authenticate Users
+*create an app folder in templates called accounts 
+*create a login.html file
+*any time you post always use a {% csrf_token %} after
+
+
+*create the app using django
+>python manage.py startapp accounts
+>manage.py runserver
+*check http://127.0.0.1:8000/admin/ to see what's showing up
+*what comes in the user model by default -a way to connect a user data to other data
+
+*in accounts/views.py create the view for accounts
+def login_view(request):
+    if request.methon == 'POST':
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        print(username, password)
+    return render(request, "accounts/login.html", {})
+*then go to urls.py & import accounts
+
+from accounts import views
+*he recommends importing the actual functions
+from articles.views import (
+	article_search_view,
+	article_create_view,
+	article_detail_view
+)
+*then you change the views to
+
+from django.urls import path
+
+from accounts.views import login_view
+from articles.views import article_detail_view, article_search_view, article_create_view
+from .views import home_view
+#from .views import views
+
+urlpatterns = [
+    path('', home_view),
+    path('article/', article_search_view),
+    path('article/create/', article_create_view),
+    path('article/<id>/', article_detail_view),
+    path('admin/', admin.site.urls),
+    path('login/', login_view),
+
+]
+
+*and the login.html looks like
+{% extends "base.html" %}
+
+{% block content %}
+
+<div style="margin-top:30px;">
+      <form method="POST">{% csrf_token %}
+  <div>
+    <input type="text" name="username" placeholder="username"/>
+  </div>
+  <div>
+    <input type="password" name="password" placeholder="password"/>
+  </div>
+    <button type="submit">Login</button>
+  </form>
+</div>
+{% endblock %}
+
+*now we will have django authorize the user by adding to account.views.py
+from django.contrib.auth import authenticate, login
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        print(username, password)
+        user = authenticate(request, username=username, password=password)
+        if user is None:
+            context = {"error": "Invalid username or password"}
+            return render(request, "accounts/login.html", context)
+    return render(request, "accounts/login.html", {})
+
+*and the html looks like 
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<div style="margin-top:30px;">
+      <form method="POST">{% csrf_token %}
+          {% if error %}
+          <p style="color: red"> {{ error }} </p>
+          {% endif %}
+  <div>
+    <input type="text" name="username" placeholder="username"/>
+  </div>
+  <div>
+    <input type="password" name="password" placeholder="password"/>
+  </div>
+    <button type="submit">Login</button>
+  </form>
+</div>
+{% endblock %}
+
+
+*to log a user in we add to account.views.py & send them to the home page
+from django.shortcuts import render, redirect
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        print(username, password)
+        user = authenticate(request, username=username, password=password)
+        if user is None:
+            context = {"error": "Invalid username or password"}
+            return render(request, "accounts/login.html", context)
+        login(request, user)
+        return redirect('/') #'/' sends it to the homepage
+    return render(request, "accounts/login.html", {})
+
+*to keep the login code from running when you are already logged in
+you can add
+def login_view(request):
+    if request.user.is_quthenticated:
+	return render(request, "accounts/already-logged-in.html", {})
+
+*or add an if statment to the actual template
+</head>
+{% extends "base.html" %}
+
+{% block content %}
+{% if not request.user.is_authenticated %}
+<div style="margin-top:30px;">
+      <form method="POST">{% csrf_token %}
+          {% if error %}
+          <p style="color: red"> {{ error }} </p>
+          {% endif %}
+  <div>
+    <input type="text" name="username" placeholder="username"/>
+  </div>
+  <div>
+    <input type="password" name="password" placeholder="password"/>
+  </div>
+    <button type="submit">Login</button>
+  </form>
+</div>
+{% else %}
+<p> You are already logged in Would you like to <a href="/logout/">logout?</a></p>
+{% endif %}
+{% endblock %}
+
+-video25 Logout
+*create template (in template/accounts) for logout.html
+{% block content %}
+{% if request.user.is_authenticated %}
+<div style="margin-top:30px;">
+      <form method="POST">{% csrf_token %}
+        <p>Are you sure you want to logout?</p>
+    <button type="submit">Yes, Logout.</button>
+  </form>
+</div>
+{% else %}
+<p> You are
+    logged in Would you like to <a href="/logout/">logout?</a></p>
+{% endif %}
+{% endblock %}
+<body>
+
+*then we create a view
+from django.contrib.auth import authenticate, login, logout
+
+def logout_view(request):
+    if request.method == 'POST':
+        logout(request)
+        return redirect("/login/")
+    return render(request, "accounts/logout.html", {})
+
+*then we add it to the urls.py
+from accounts.views import login_view, logout_view
+
+path('logout/', logout_view)
+
+video26 - creating a user requied
+
+*we use the articles.views.article_create_view
+*because we only want users creating articles
+*django has a builtin way to require login
+
+*in articles.views.py we add
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def article_create_view(request):
+
+*then go to settings, next to the ROOT_URLCONF place
+LOGIN_URL='/login/'
+
+-video27 Basic Django Forms
+*create a form to handle articl_create_view
+*go to articles app & create forms.py
+*in articles/forms.py put
+
+from django import forms
+class ArticleForm(forms.Form):
+    title = forms.Charfield()
+    content = forms.Charfield()
+
+*now we import the form into article/views.py
+from .forms import ArticleForm
+
+*now we initalize the form in article_create_view by putting it in context
+def article_create_view(request):
+    #print(request.POST)
+    context = {
+        "form": ArticleForm()
+    }
+
+*then we render it out in our template so we can see what it looks like
+*including other text so we know where to put it
+
+{% block content %}
+{% if not created %}
+{{ form.as_p }}
+<div style="margin-top:30px;">
+
+*then we go back to article/views.py
+form = ArticleForm()
+
+*specifically here
+@login_required
+def article_create_view(request):
+    #print(request.POST)
+    form = ArticleForm()
+    print(dir(form))
+    context = {
+        "form": ArticleForm()
+    }
+
+
+*in create.html we don't need the old html form so
+
+<form action="." method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+<!--    <div>-->
+<!--    <input type="text" name="title" placeholder="Title" />-->
+<!--    </div>-->
+<!--    <div style="margin-top:30px;">-->
+<!--    <textarea name="content" placeholder="Content"></textarea>-->
+<!--        </div>-->
+    <button type="submit">Create Article</button>
+</form>
+</div>
+{% else %}
+
+*now we can create validation meathods to clean & insure the data is clean & valid
+
+class ArticleForm(forms.Form):
+    title = forms.CharField()
+    content = forms.CharField()
+
+    def clean_title(self):
+        cleaned_data = self.cleaned_data
+        print(cleaned_data)
+        title = cleaned_data.get('title')
+        return title
+
+*in article/views.py we make sure that the function works
+
+@login_required
+def article_create_view(request):
+    #print(request.POST)
+    form = ArticleForm() #here we render the form
+    #print(dir(form))
+    context = {
+        "form": ArticleForm()
+    }
+    if request.method == "POST": #once we do a post method that method needs to handle the data
+        form = ArticleForm(request.POST) #here we pass in the unclean data
+        if form.is_valid(): #we run this if statement to make sure our form data is cleaned
+            title = form.cleaned_data.get("title")
+            content = form.cleaned_data.get("content")
+            #print(title, content)
+            article_object = Article.objects.create(title=title, content=content)
+            context['object'] = article_object
+            context['created'] = True
+
+    return render(request, "articles/create.html", context=context)
+
+*by adding the if form.is_valid() statement to article_create_view
+*if the form is not valid, context will not be updated and not return anything
+*to get the form to show us the error (context wasn't updated, form isn't valid)
+*we add
+        form = ArticleForm(request.POST) #here we pass in the unclean data
+        context['form'] = form
+
+*code is redundent so we add
+def article_create_view(request):
+    #print(request.POST)
+    form = ArticleForm(request.POST or None) #here we render the form
+	*and this initialize it the same way we do later in the code & just jump to the if form.is_valid statement
+
+@login_required
+def article_create_view(request):
+    #print(request.POST)
+    form = ArticleForm(request.POST or None) #here we render the form
+    #print(dir(form))
+    context = {
+        "form": form
+    }
+    # if request.method == "POST": #once we do a post method that method needs to handle the data
+    #     form = ArticleForm(request.POST) #here we pass in the unclean data
+    #     context['form'] = form
+    if form.is_valid(): #we run this if statement to make sure our form data is cleaned
+        title = form.cleaned_data.get("title")
+        content = form.cleaned_data.get("content")
+        #print(title, content)
+        article_object = Article.objects.create(title=title, content=content)
+        context['object'] = article_object
+        context['created'] = True
+
+    return render(request, "articles/create.html", context=context)
+
+*everything working
+*from article/forms.py
+from django import forms
+
+class ArticleForm(forms.Form):
+    title = forms.CharField()
+    content = forms.CharField()
+
+    # def clean_title(self):
+    #     cleaned_data = self.cleaned_data
+    #     #print(cleaned_data)
+    #     title = cleaned_data.get('title')
+    #     return title
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        print('all data', cleaned_data)
+        title = cleaned_data.get('title')
+        content = cleaned_data.get('content')
+        if title.lower().strip() == "the office":
+            self.add_error('title', 'This title is taken.')
+            raise forms.ValidationError('This title is taken.')
+        if "office" in content or "office" in title.lower():
+            self.add_error('content', 'Office cannot be in content')
+            raise forms.ValidationError("Office is not allowed")
+        return cleaned_data
+
+*from articles/views.py
+
+@login_required
+def article_create_view(request):
+    #print(request.POST)
+    form = ArticleForm(request.POST or None) #here we render the form
+    #print(dir(form))
+    context = {
+        "form": form
+    }
+    # if request.method == "POST": #once we do a post method that method needs to handle the data
+    #     form = ArticleForm(request.POST) #here we pass in the unclean data
+    #     context['form'] = form
+    if form.is_valid(): #we run this if statement to make sure our form data is cleaned
+        title = form.cleaned_data.get("title")
+        content = form.cleaned_data.get("content")
+        print(title, content)
+        article_object = Article.objects.create(title=title, content=content)
+        context['object'] = article_object
+        context['created'] = True
+
+    return render(request, "articles/create.html", context=context)
+
+-video28 model form for article model
+*how to shortcut everything we've done in our views & form
+*by creating a model form, which resembles admin.py because it also uses a ModelForm
+
+from .models import Article
+
+
+class ArticleForm(forms.ModelForm):
+    class Meta:
+        model = Article
+        fields = ['title', 'content']
+
+*ModelForm allows us to clean up our view
+
+    if form.is_valid(): #we run this if statement to make sure our form data is cleaned
+        article_object = form.save()
+	#we can get rid of the following code because ModelForm handles this for us
+        # title = form.cleaned_data.get("title")
+        # content = form.cleaned_data.get("content")
+        # print(title, content)
+        # article_object = Article.objects.create(title=title, content=content)
+        context['object'] = article_object
+        context['created'] = True
+
+    return render(request, "articles/create.html", context=context)
+
+*in forms we add a function to the ArticleForm class to prevent from submitting a title that has alread been submitted
+
+    def clean(self):
+        data = self.cleaned_data
+        title = data.get('title')
+        qs = Article.objects.filter(title__icontains=title)#this query set will filter down entire database for that particule string
+        if qs.exists():
+            self.add_error("title", f"{title} is already in use.") #this could also be a form error
+        return data
+
+-video29 register a user via built in model form
+in accounts/views.py
+
+def register_view(request):
+    form = UserCreationForm(request.POST or None)
+    if form.is_valid():
+        user_obj = form.save()
+        return redirect('/login')
+    context = {"form":form}
+    return render(request, 'accounts/register.html', context)
+
+*go to urls & import register_view with the rest of accounts.views functions
+*create a path for register_view
+    path('register/', register_view),
+
+*create a register.html file
+    <title>Register Accounts</title>
+</head>
+{% extends "base.html" %}
+
+{% block content %}
+{% if not request.user.is_authenticated %}
+    <div style="margin-top:30px;">
+          <form method="POST">{% csrf_token %}
+              {{ form.as_p}}
+            <button type="submit">Register.</button>
+          </form>
+        <p>Already have an account? Please <a href="/login"</a>Login</p>
+    </div>
+{% else %}
+<p> You are already logged in and cannot register. Would you like to <a href="/logout/">logout?</a></p>
+{% endif %}
+{% endblock %}
+<body>
+
+-video30 Login via Django AuthenticationForm
+
+*AuthenticationForm
+takes in a request as an argument, is is only for authentication, just takes in that request form vs UserCreationForm that takes Post/Get requests because it is a model
+
+*login_view works
+def login_view(request):#using django authenticationForm
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)#the form has request as an argument
+        if form.is_valid():
+            user = form.get_user() #this method is specific to AuthenticationForm
+            login(request, user)
+            return redirect('/') #'/' sends it to the homepage
+    else:
+        form = AuthenticationForm(request)
+    context = {
+        "form": form
+    }
+    return render(request, "accounts/login.html", context)
+
+*updating the login.html to
+
+{% extends "base.html" %}
+
+{% block content %}
+{% if not request.user.is_authenticated %}
+    <div style="margin-top:30px;">
+          <form method="POST">{% csrf_token %}
+              {{ form.as_p }}
+              <button type="submit">Login</button>
+          </form>
+        <p> Need an account Please <a href="/register">Register</a> </p>
+    </div>
+{% else %}
+<p> You are already logged in Would you like to <a href="/logout/">logout?</a></p>
+{% endif %}
+{% endblock %}
+<body>
+
+--video31 Environment Variables & dotenv
+*in settings.py
+	*SECRET_KEY
+	*DEBUG
+*dotenv file: a way to manage environment variables
+
+import os #package that will allow us to grab our environment variables
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-iy423h3&+iv(ps%oq5#tzznzkx%k-9u5^0n#6_@^@x8xi$^r1j')
+print(SECRET_KEY)
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = str(os.environ.get('DEBUG')) == '1' # 1 == TRUE
+ALLOWED_HOSTS = ["127.0.0.1", 'localhost']
+
+*create .env file at the same directory level as manage.py when creating the file in pycharm as file containing settings for editor
+*in the .env file 
+SECRET_KEY='django-insecure-lgkfnbvjhgtrefjytdng76chgfhjgfhgfjgfiy423h3&+iv(ps%oq5#tzzn
+DEBUG=1
+
+*pip install django-dotenv (w/the virtual env on & in moar_django)
+*add it to our requirements.txt in the terminal
+pip freeze > requirements.txt
+
+*in manage.py add
+import dotenv
+def main():
+    """Run administrative tasks."""
+    dotenv.read_dotenv()
+
+*ctrl+c & restart the server after updating env file for changes to take effect
+
+*to change the hosts when debug is not true
+*add to .env
+ALLOWED_HOST=127.0.01
+
+*then we can add to settings.py under ALLOWED_HOSTS
+*change allowed hosts because while not in production django doesn't care about allowed hosts
+*but once in productiong django will care
+
+ALLOWED_HOSTS = []
+if not DEBUG:
+    ALLOWED_HOSTS += [os.environ.get('')] #then update the allowed host to get the string of allowed host
+
+*if you want to add an additional check for an env file:
+*add to manage.py
+import pathlib
+def main():
+    """Run administrative tasks."""
+    DOT_ENV_PATH = pathlib.PATH() / '.env'
+    if DOT_ENV_PATH.exisits():
+	dotenv.read_dotenv(str(DOT_ENV_PATH))
+    else:
+	print("No .env found, be sure to make it.")
+*this is also where you would put your email creditential & api keys & sensitive data that might change
+
+-video32 Prep Django for digitalOcean 
+*to create a new random django password use (while the virtual environment is up)
+>python -c
+'from django.core.management.utils import get_random_secret_key; print(get_random_se
+cret_key())'
+*we are goint to use gunicorn & psycopg2-binary so add them to requirements.txt
+*we have to create a runtime.txt that points us to which python version we want to use at the same directory level as requirements
+python-3.10.1
+
+*update settings.py
+*Change SECRET_KEY TO  DJANGO_SECRET_KEY in settings.py and .env
+
+*then change the database settings
+POSTGRES_DB = os.environ.get("POSTGRES_DB")
+POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
+POSTGRES_USER = os.environ.get("POSTGRES_USER")
+POSTGRES_HOST = os.environ.get("POSTGRES_HOST")
+POSTGRES_PORT = os.environ.get("POSTGRES_PORT")
+
+POSTGRES_READY = (
+    POSTGRES_DB is not None
+    and POSTGRES_PASSWORD is not None
+    and POSTGRES_USER is not None
+    and POSTGRES_HOST is not None
+    and POSTGRES_PORT is not None
+)
+
+if POSTGRES_READY:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": POSTGRES_DB,
+            "USER": POSTGRES_USER,
+            "PASSWORD": POSTGRES_PASSWORD,
+            "HOST": POSTGRES_HOST,
+            "PORT": POSTGRES_PORT,
+        }
+    }
+
+-video33 managing code with git
+*uploading a project to git
+*on github create a new github repository plus sign in upper right quarter
+*initalize git repository in directory you want
+>git init
+*
+>git remote add origin https://github.com/nameofproject.git
+*add all files to the staging platform
+>git add --all
+*git status will show you what files have been staged
+>git status
+*to commit all the files in the staging area
+>git commit -m "Inital Commit"
+*to see remote
+>git remote will show you the remote hosts you will be using
+*if I want to see what the remote is 
+>git remote -v
+*if I want to add a host and call the host something different than origin
+>git remote add somethingelse https://github.com/blulady/Moar_Django.git
+*and then git remote -v will return origin & something else
+*to remove the remote
+>git remote remove origin
+*git push -u origin master
+*to get differences in files before commiting them
+>git diff
+
+https://www.codingforentrepreneurs.com/blog/version-control-with-git-basics-for-try-django-32
+
+
+
+
+
+
+
+
+
+
+
